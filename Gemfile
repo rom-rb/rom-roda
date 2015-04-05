@@ -12,11 +12,10 @@ platforms :jruby do
 end
 
 group :test do
+  gem 'thread_safe'
   gem 'rom', github: 'rom-rb/rom', branch: 'master'
   gem 'rom-sql', github: 'rom-rb/rom-sql', branch: 'master'
   gem 'rspec', '~> 3.2'
+  gem 'rack-test'
   gem 'codeclimate-test-reporter', require: nil
-  gem 'database_cleaner'
-  gem 'capybara'
-  gem 'byebug', platform: :mri
 end
