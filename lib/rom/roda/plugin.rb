@@ -9,13 +9,19 @@ module ROM
         ROM.setup(*args)
 
         self.load_files(load_path) if load_path
-
-        ROM.finalize
       end
 
       def self.load_files(path)
         Dir["#{path}/**/*.rb"].each do |class_file|
           require class_file
+        end
+      end
+
+      module ClassMethods
+        def freeze
+          ROM.finalize
+
+          super
         end
       end
 
