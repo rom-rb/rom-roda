@@ -75,7 +75,7 @@ end
 
 With the ROM environment configured, the following instance methods are available in Roda routes:
 
-**rom**
+#### rom
 
 Provides an instance of the ROM environment:
 
@@ -85,19 +85,23 @@ route do |r|
 end
 ```
 
-**relation(name)**
+#### relation(name)
 
 Provides an instance of the named relation:
 
 ```ruby
 route do |r|
-  r.is('catalog') do
-    relation(:products).where(available_for_purchase: true).limit(20)
+  r.on('catalog') do
+    @products = relation(:products).in_stock
+
+    r.is('category/:category') do |category|
+      @products.by_category(category)
+    end
   end
 end
 ```
 
-**command(name)**
+#### command(name)
 
 Provides an instance of the named command:
 
