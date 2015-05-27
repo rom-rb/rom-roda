@@ -2,8 +2,10 @@ module ROM
   module Roda
     module Plugin
       def self.configure(app, *args)
+        args = args.dup
+
         if args.last.is_a?(Hash) && args.last.key?(:load_path)
-          load_path = File.expand_path(args.last.delete(:load_path), app.opts[:root])
+          load_path = File.expand_path(args.pop.delete(:load_path), app.opts[:root])
         end
 
         ROM.setup(*args)
