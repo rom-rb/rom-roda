@@ -8,7 +8,6 @@ gem 'roda'
 
 platforms :jruby do
   gem 'jdbc-sqlite3'
-  gem 'activerecord-jdbc-adapter'
 end
 
 group :test do
