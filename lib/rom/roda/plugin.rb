@@ -5,10 +5,12 @@ module ROM
         attr_reader :environments
 
         def configure(app, config)
-          load_path = File.expand_path(
-            config.delete(:load_path),
-            app.opts[:root]
-          ) if config[:load_path]
+          load_paths = [*(config.delete(:load_path) || config.delete(:load_paths))].map do |path|
+            File.expand_path(
+              path,
+              app.opts[:root]
+            )
+          end if config[:load_path] || config[:load_paths]
 
           @environments = config.each_with_object({}) do |(env_name, env_config), container|
             container[env_name] = ROM::Environment.new.tap do |env|
@@ -20,7 +22,7 @@ module ROM
             end
           end
 
-          load_files(load_path) if load_path
+          load_paths.map { |path| load_files(path) } if load_paths
         end
 
         def load_files(path)

@@ -106,6 +106,21 @@ class App < Roda
 end
 ```
 
+You can also pass an array of paths to be autoloaded:
+
+```ruby
+class App < Roda
+  # register ROM components from './models' and './lib'
+  plugin :rom, {
+    default: {
+      setup: [:sql, 'sqlite::memory'],
+      plugins: [:auto_registration]
+    },
+    load_paths: ['models', 'lib']
+  }
+end
+```
+
 In situations where your app is loaded from a path that isn’t the `pwd` of the Rack server process, the ROM plugin plays nicely with Roda’s `opts[:root]` setting:
 
 ```ruby
