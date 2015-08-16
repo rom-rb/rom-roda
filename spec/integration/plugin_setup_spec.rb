@@ -103,27 +103,65 @@ describe ROM::Roda::Plugin do
   end
 
   context 'with environment plugin settings' do
-    let(:relations) do
-      class PluginExample < Roda
-        plugin :rom, {
-          default: {
-            setup: :memory,
-            plugins: [:auto_registration]
+    context 'without plugin config' do
+      let(:relations) do
+        class PluginExample < Roda
+          plugin :rom, {
+            default: {
+              setup: :memory,
+              plugins: [:auto_registration]
+            }
           }
-        }
+        end
+
+        class Users < ROM::Relation[:memory]
+          dataset :users
+        end
+
+        PluginExample.freeze
+
+        PluginExample.rom.relations
       end
 
-      class Users < ROM::Relation[:memory]
-        dataset :users
+      it 'configures gateway with a connection string' do
+        expect(relations[:users]).to be_a(ROM::Memory::Relation)
       end
-
-      PluginExample.freeze
-
-      PluginExample.rom.relations
     end
 
-    it 'configures gateway with a connection string' do
-      expect(relations[:users]).to be_a(ROM::Memory::Relation)
+    context 'with plugin config' do
+      let(:relations) do
+        class PluginWithConfigExample < Roda
+          plugin :rom, {
+            default: {
+              setup: :memory,
+              plugins: {
+                auto_registration: {
+                  if: ->(item) { item.to_s[/(.*)(?=::)/] == 'API' }
+                }
+              }
+            }
+          }
+        end
+
+        class Posts < ROM::Relation[:memory]
+          dataset :posts
+        end
+
+        module API
+          class Comments < ROM::Relation[:memory]
+            dataset :comments
+          end
+        end
+
+        PluginWithConfigExample.freeze
+
+        PluginWithConfigExample.rom.relations
+      end
+
+      it 'configures gateway with a connection string' do
+        expect { relations[:posts] }.to raise_error ROM::Registry::ElementNotFoundError
+        expect(relations[:comments]).to be_a(ROM::Memory::Relation)
+      end
     end
   end
 end

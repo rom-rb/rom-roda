@@ -62,16 +62,26 @@ class App < Roda
 end
 ```
 
-You can also register multiple ROM environments:
+You can also register multiple ROM environments, when doing so, it can be useful to pass configuration options to environment plugins, the following example will register items defined in the `Web` namespace with the `memory` environment and items defined in the `API` namespace with the `sql` environment:
 
 ```ruby
 class App < Roda
   plugin :rom, {
     memory: {
-      setup: :memory
+      setup: :memory,
+      plugins: {
+        auto_registration: {
+          if: ->(item) { item.to_s[/(.*)(?=::)/] == 'Web' }
+        }
+      }
     },
     sql: {
-      setup: [:sql, 'sqlite::memory']
+      setup: [:sql, 'sqlite::memory'],
+      plugins: {
+        auto_registration: {
+          if: ->(item) { item.to_s[/(.*)(?=::)/] == 'API' }
+        }
+      }
     }
   }
 end
