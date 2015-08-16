@@ -79,7 +79,7 @@ end
 
 ### Loading ROM components
 
-Relations, commands and mappers need to be registered with the ROM environment before the environment it finalized (this can also be done via the `auto_registration` plugin). This means that these components must be required by the app in a specific order during setup.
+Relations, commands and mappers need to be registered with the ROM environment before the environment is finalized (this can also be done via the `auto_registration` plugin). This means that these components must be required by the app in a specific order during setup.
 
 You can autoload ROM components from a local path in your app by passing the `:load_path` option to the plugin:
 
