@@ -1,43 +1,63 @@
 module ROM
   module Roda
     module Plugin
-      def self.configure(app, *args)
-        args = args.dup
+      class << self
+        attr_reader :environments
 
-        if args.last.is_a?(Hash) && args.last.key?(:load_path)
-          load_path = File.expand_path(args.pop.delete(:load_path), app.opts[:root])
+        def configure(app, config)
+          load_paths = [*(config.delete(:load_path) || config.delete(:load_paths))].map do |path|
+            File.expand_path(
+              path,
+              app.opts[:root]
+            )
+          end if config[:load_path] || config[:load_paths]
+
+          @environments = config.each_with_object({}) do |(env_name, env_config), container|
+            container[env_name] = ROM::Environment.new.tap do |env|
+              env.setup(*[env_config.fetch(:setup)].flatten)
+
+              env_config.fetch(:plugins, {}).each do |*args|
+                env.use(*args.flatten)
+              end
+            end
+          end
+
+          load_paths.map { |path| load_files(path) } if load_paths
         end
 
-        ROM.setup(*args)
-
-        self.load_files(load_path) if load_path
-      end
-
-      def self.load_files(path)
-        Dir["#{path}/**/*.rb"].each do |class_file|
-          require class_file
+        def load_files(path)
+          Dir["#{path}/**/*.rb"].each do |class_file|
+            require class_file
+          end
         end
       end
 
       module ClassMethods
         def freeze
-          ROM.finalize
+          @__rom__ = ROM::Roda::Plugin.environments.each_with_object({}) do |(name, env), container|
+            container[name] = env.finalize.container
+          end
 
           super
+        end
+
+        def rom(environment = nil)
+          environment = :default if environment.nil?
+          @__rom__.fetch(environment)
         end
       end
 
       module InstanceMethods
-        def rom
-          ROM.env
+        def rom(environment = nil)
+          self.class.rom(environment)
         end
 
-        def relation(name)
-          ROM.env.relation(name)
+        def relation(name, environment = nil)
+          rom(environment).relation(name)
         end
 
-        def command(name)
-          ROM.env.command(name)
+        def command(name, environment = nil)
+          rom(environment).command(name)
         end
       end
     end
